@@ -1,6 +1,6 @@
 # network_to_file_image
 
-This is mixture of [FileImage] and [NetworkImage].
+This is a mixture of [FileImage] and [NetworkImage].
 It will download the image from the url once, save it locally in the file system,
 and then use it from there in the future.
 

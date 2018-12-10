@@ -8,7 +8,7 @@ import 'dart:ui' as ui show Codec;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-/// This is mixture of [FileImage] and [NetworkImage].
+/// This is a mixture of [FileImage] and [NetworkImage].
 /// It will download the image from the url once, save it locally in the file system,
 /// and then use it from there in the future.
 ///
