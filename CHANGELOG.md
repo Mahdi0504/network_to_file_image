@@ -1,3 +1,7 @@
-## [0.0.1] - TODO: Add release date.
+## [0.0.1] - 10/12/2018
 
-* TODO: Describe initial release.
+* Reads from the file, or fetches from the network and saves to the file.
+
+## [0.0.2] - 10/12/2018
+
+* Corrected changelog and license.
