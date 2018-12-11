@@ -5,3 +5,7 @@
 ## [0.0.2] - 10/12/2018
 
 * Corrected changelog and license.
+
+## [1.0.0] - 11/12/2018
+
+* Tested thoroughly.
