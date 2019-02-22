@@ -60,8 +60,18 @@ the file or fetched from the network:
 
 Don't forget to check the [example tab](https://pub.dartlang.org/packages/network_to_file_image#-example-tab-).
 
- 
-See also:
+## Tests
+
+You can set mock files. Please see methods:
+
+* `setMockFile(File file, Uint8List bytes)`
+* `setMockUrl(String url, Uint8List bytes)`
+* `clearMocks()`
+* `clearMockFiles()`
+* `clearMockUrls()`
+
+
+## See also
 
   * flutter_image: https://pub.dartlang.org/packages/flutter_image
   * image_downloader: https://pub.dartlang.org/packages/image_downloader

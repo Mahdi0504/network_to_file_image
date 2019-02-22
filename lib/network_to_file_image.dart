@@ -34,7 +34,17 @@ import 'package:flutter/material.dart';
 /// - If you make debug=true it will print to the console whether the image was
 /// read from the file or fetched from the network.
 ///
-/// See also:
+/// ## Tests
+///
+/// You can set mock files. Please see methods:
+///
+/// * `setMockFile(File file, Uint8List bytes)`
+/// * `setMockUrl(String url, Uint8List bytes)`
+/// * `clearMocks()`
+/// * `clearMockFiles()`
+/// * `clearMockUrls()`
+///
+/// ## See also:
 ///
 ///  * flutter_image: https://pub.dartlang.org/packages/flutter_image
 ///  * image_downloader: https://pub.dartlang.org/packages/image_downloader
@@ -48,6 +58,7 @@ class NetworkToFileImage extends ImageProvider<NetworkToFileImage> {
     this.scale = 1.0,
     this.headers,
     this.debug = false,
+    ProcessError processError,
   })  : assert(file != null || url != null),
         assert(scale != null);
 
@@ -56,6 +67,35 @@ class NetworkToFileImage extends ImageProvider<NetworkToFileImage> {
   final double scale;
   final Map<String, String> headers;
   final bool debug;
+
+  static final Map<String, Uint8List> _mockFiles = {};
+  static final Map<String, Uint8List> _mockUrls = {};
+
+  /// You can set mock files. It searches for an exact file.path (string comparison).
+  /// For example, to set an empty file: setMockFile(File("photo.png"), null);
+  static setMockFile(File file, Uint8List bytes) {
+    assert(file != null);
+    _mockFiles[file.path] = bytes;
+  }
+
+  /// You can set mock urls. It searches for an exact url (string comparison).
+  static setMockUrl(String url, Uint8List bytes) {
+    assert(url != null);
+    _mockUrls[url] = bytes;
+  }
+
+  static clearMocks() {
+    clearMockFiles();
+    clearMockUrls();
+  }
+
+  static clearMockFiles() {
+    _mockFiles.clear();
+  }
+
+  static clearMockUrls() {
+    _mockUrls.clear();
+  }
 
   @override
   Future<NetworkToFileImage> obtainKey(ImageConfiguration configuration) {
@@ -80,9 +120,19 @@ class NetworkToFileImage extends ImageProvider<NetworkToFileImage> {
 
     Uint8List bytes;
 
+    // Reads a MOCK file.
+    if (file != null && _mockFiles.containsKey(file.path)) {
+      bytes = _mockFiles[file.path];
+    }
+
     // Reads from the local file.
-    if (file != null && _ifFileExistsLocally()) {
+    else if (file != null && _ifFileExistsLocally()) {
       bytes = await _readFromTheLocalFile();
+    }
+
+    // Reads from the MOCK network and saves it to the local file.
+    else if (url != null && url.isNotEmpty && _mockUrls.containsKey(url)) {
+      bytes = await _downloadFromTheMockNetworkAndSaveToTheLocalFile();
     }
 
     // Reads from the network and saves it to the local file.
@@ -90,7 +140,10 @@ class NetworkToFileImage extends ImageProvider<NetworkToFileImage> {
       bytes = await _downloadFromTheNetworkAndSaveToTheLocalFile();
     }
 
-    if (bytes == null || bytes.lengthInBytes == 0) return null;
+    // ---
+
+    // Empty file.
+    if ((bytes != null) && (bytes.lengthInBytes == 0)) bytes = null;
 
     return await PaintingBinding.instance.instantiateImageCodec(bytes);
   }
@@ -126,6 +179,18 @@ class NetworkToFileImage extends ImageProvider<NetworkToFileImage> {
     return bytes;
   }
 
+  Future<Uint8List> _downloadFromTheMockNetworkAndSaveToTheLocalFile() async {
+    assert(url != null && url.isNotEmpty);
+    if (debug) print("Fetching image from: $url");
+    // ---
+
+    final Uri resolved = Uri.base.resolve(url);
+    Uint8List bytes = _mockUrls[url];
+    if (bytes.lengthInBytes == 0) throw Exception('NetworkImage is an empty file: $resolved');
+    if (file != null) saveImageToTheLocalFile(bytes);
+    return bytes;
+  }
+
   void saveImageToTheLocalFile(Uint8List bytes) async {
     if (debug) print("Saving image to file: ${file?.path}");
     file.writeAsBytes(bytes, flush: true);
@@ -146,3 +211,5 @@ class NetworkToFileImage extends ImageProvider<NetworkToFileImage> {
   @override
   String toString() => '$runtimeType("${file?.path}", "$url", scale: $scale)';
 }
+
+typedef ProcessError = void Function(dynamic error);
